@@ -8,6 +8,7 @@ This project is a short script which downloads students' assignment due dates fr
 * I tried to get the code to ~~strikethrough~~ event names once assignments were completed and/or make transparent boxes like Canvas's calendar linking system, but I couldn't make that work
 * I investigated using Google Tasks, but unfortunately, [they do not support times for due dates](https://issuetracker.google.com/issues/149537960)
 * I was also interested in working on a webapp which puts a nice GUI interface over this script and handles all the Gradescope/Google Authentication, but at the moment, I don't have servers to run it on.
+* I also want to add a feature to pull assignment descriptions and attachments and add them to the event description, but I haven't gotten around to it yet. Stay tuned!
 
 ## Setup
 1. Clone the repository
