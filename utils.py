@@ -14,7 +14,7 @@ GRADESCOPE_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 #region Google Calendar
 
 def login_with_google():
-    google_API_scopes = ['https://www.googleapis.com/auth/calendar.calendarlist', 'https://www.googleapis.com/auth/calendar.calendars', 'https://www.googleapis.com/auth/calendar.events']
+    google_API_scopes = ['https://www.googleapis.com/auth/calendar']
 
     # Copied from Google's API documentation
     google_credentials = None
@@ -106,7 +106,7 @@ def get_assignment_in_calendar(assignment, calendar_events):
 
     return None
 
-def create_assignment_event(calendar_service, event_create_batch, gradescope_calendar_id, course_name, course_url, assignment):
+def create_assignment_event(calendar_service, event_create_batch, gradescope_calendar_id, course_name, course_url, assignment, color_settings):
     event = {
         "summary": assignment["name"],
         "description": f'Assignment for <a href="{format_gradescope_url(course_url)}">{course_name}</a> on Gradescope',
@@ -117,8 +117,7 @@ def create_assignment_event(calendar_service, event_create_batch, gradescope_cal
             "dateTime": assignment["due_date"]["normal"].isoformat()
             # "dateTime": assignment["due_date"]["late"].isoformat()
         },
-        "status": "cancelled" if assignment["completed"] else "tentative",
-        "transparency": "transparent"
+        "colorId": color_settings["Completed"] if assignment["completed"] else color_settings[course_name],
     }
     event_create_batch.add(calendar_service.events().insert(calendarId=gradescope_calendar_id, body=event))
 

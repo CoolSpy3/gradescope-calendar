@@ -1,8 +1,8 @@
 import json
+import os.path
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
-import requests
 from googleapiclient.discovery import build as buildGoogleAPIService
 
 import utils
@@ -40,6 +40,31 @@ gradescope_assignments = {
 }
 
 with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google()) as calendar_service:
+
+    colors = calendar_service.colors().get().execute()["event"]
+    if not os.path.exists("colors.json"):
+        with open("colors.json", "w") as f:
+            json.dump(colors, f, indent=4)
+
+    color_settings = None
+    if os.path.exists("color_settings.json"):
+        with open("color_settings.json") as f:
+            color_settings = json.load(f)
+
+    if not color_settings or not all(course_name in color_settings and color_settings[course_name] in colors for course_name, _ in gradescope_courses) or not color_settings.get("Completed", None):
+        print("Please fill out color_settings.json with the colors you want to use for each course. The colors are listed in colors.json (the background color will show up). Match each course to a color id. Then run this script again.")
+        if color_settings:
+            invalid_settings = [course_name for course_name, _ in gradescope_courses if not (course_name in color_settings and color_settings[course_name] in colors)]
+            if not color_settings.get("Completed", None):
+                invalid_settings.append("Completed")
+            print(f"The following settings are currently missing or invalid: {invalid_settings}")
+        else:
+            with open("color_settings.json", "w") as f:
+                default_color_settings = { course_name: "" for course_name, _ in gradescope_courses }
+                default_color_settings["Completed"] = ""
+                json.dump(default_color_settings, f, indent=4)
+        exit()
+
     gradescope_calendar_id = utils.find_gradescope_calendar_id(calendar_service) or utils.create_gradescope_calendar(calendar_service)
 
     calendar_events = list(utils.enumerate_calendar_events(calendar_service, gradescope_calendar_id))
@@ -52,8 +77,8 @@ with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google
 
             if not calendar_event:
                 if assignment["due_date"]["normal"] > datetime.now(timezone.utc):
-                    utils.create_assignment_event(calendar_service, event_update_batch, gradescope_calendar_id, course_name, course_url, assignment)
+                    utils.create_assignment_event(calendar_service, event_update_batch, gradescope_calendar_id, course_name, course_url, assignment, color_settings)
             elif assignment["completed"] and calendar_event["status"] != "cancelled":
-                event_update_batch.add(calendar_service.events().patch(calendarId=gradescope_calendar_id, eventId=calendar_event["id"], body={"status": "cancelled"}))
+                event_update_batch.add(calendar_service.events().patch(calendarId=gradescope_calendar_id, eventId=calendar_event["id"], body={"colorId": color_settings["Completed"]}))
 
     event_update_batch.execute()
