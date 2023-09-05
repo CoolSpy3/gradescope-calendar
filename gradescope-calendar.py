@@ -63,7 +63,7 @@ with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google
                 default_color_settings = { course_name: "" for course_name, _ in gradescope_courses }
                 default_color_settings["Completed"] = ""
                 json.dump(default_color_settings, f, indent=4)
-        exit()
+        exit(1)
 
     gradescope_calendar_id = utils.find_gradescope_calendar_id(calendar_service) or utils.create_gradescope_calendar(calendar_service)
 
