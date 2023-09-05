@@ -106,7 +106,7 @@ def get_assignment_in_calendar(assignment, calendar_events):
 
     return None
 
-def create_assignment_event(calendar_service, gradescope_calendar_id, course_name, course_url, assignment):
+def create_assignment_event(calendar_service, event_create_batch, gradescope_calendar_id, course_name, course_url, assignment):
     event = {
         "summary": assignment["name"],
         "description": f'Assignment for <a href="{format_gradescope_url(course_url)}">{course_name}</a> on Gradescope',
@@ -120,7 +120,7 @@ def create_assignment_event(calendar_service, gradescope_calendar_id, course_nam
         "status": "cancelled" if assignment["completed"] else "tentative",
         "transparency": "transparent"
     }
-    calendar_service.events().insert(calendarId=gradescope_calendar_id, body=event).execute()
+    event_create_batch.add(calendar_service.events().insert(calendarId=gradescope_calendar_id, body=event))
 
 
 def get_assignment_name(assignment):

@@ -44,12 +44,16 @@ with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google
 
     calendar_events = list(utils.enumerate_calendar_events(calendar_service, gradescope_calendar_id))
 
+    event_update_batch = calendar_service.new_batch_http_request()
+
     for course_name, course_url in gradescope_courses:
         for assignment in gradescope_assignments[course_name]:
             calendar_event = utils.get_assignment_in_calendar(assignment, calendar_events)
 
             if not calendar_event:
                 if assignment["due_date"]["normal"] > datetime.now(timezone.utc):
-                    utils.create_assignment_event(calendar_service, gradescope_calendar_id, course_name, course_url, assignment)
+                    utils.create_assignment_event(calendar_service, event_update_batch, gradescope_calendar_id, course_name, course_url, assignment)
             elif assignment["completed"] and calendar_event["status"] != "cancelled":
-                calendar_service.events().patch(calendarId=gradescope_calendar_id, eventId=calendar_event["id"], body={"status": "cancelled"}).execute()
+                event_update_batch.add(calendar_service.events().patch(calendarId=gradescope_calendar_id, eventId=calendar_event["id"], body={"status": "cancelled"}))
+
+    event_update_batch.execute()
