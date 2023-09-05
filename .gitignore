@@ -163,3 +163,5 @@ cython_debug/
 *_token.json
 *_settings.json
 colors.json
+log.txt
+error_log.txt

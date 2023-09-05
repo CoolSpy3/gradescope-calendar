@@ -47,6 +47,8 @@ This project is a short script which downloads students' assignment due dates fr
     * If you update your colors you might also want to delete `colors.json` and rerun the script to ensure your colors are up-to-date (although I doubt Google will change them anytime soon)
 10. If you want to have the calendar continually update, you'll have to use something like Windows Task Scheduler to run the script periodically
 
+Note the script also contains two command line switches `--log-to-file` and `--popup-on-error`. Because I am planning to run this through Windows Task Scheduler, they are just to make my life easier. They should be self-explanatory.
+
 ## Code Layout
 The code is divide into two files:
 * `gradescope-calendar.py` contains the main code/control flow login

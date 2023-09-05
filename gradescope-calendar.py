@@ -1,11 +1,25 @@
 import json
 import os.path
+import sys
+import tkinter.messagebox
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 from googleapiclient.discovery import build as buildGoogleAPIService
 
 import utils
+
+if "--log-to-file" in sys.argv:
+    sys.stdout = open("log.txt", "w")
+    sys.stderr = open("error_log.txt", "w")
+
+if "--popup-on-error" in sys.argv:
+    def exception_handler(exception_type, exception, traceback):
+        tkinter.messagebox.showerror("Gradescope Calendar", f"{exception_type.__name__}: {exception}")
+        sys.__excepthook__(exception_type, exception, traceback)
+    sys.excepthook = exception_handler
+
+print("Downloading Gradescope assignments...")
 
 # Read in the config file
 gradescope_token = None
@@ -58,6 +72,8 @@ gradescope_assignments = {
     for course_name, course_assignments in gradescope_assignments.items()
 }
 
+print("Connecting to Google Calendar...")
+
 # Connect to the Google Calendar API ( I tried to use Google Tasks, but they don't support color coding or (more importantly) due times (only dates) )
 with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google()) as calendar_service:
 
@@ -90,6 +106,8 @@ with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google
 
     gradescope_calendar_id = utils.find_gradescope_calendar_id(calendar_service) or utils.create_gradescope_calendar(calendar_service)
 
+
+    print("Updating Assignment...")
     calendar_events = list(utils.enumerate_calendar_events(calendar_service, gradescope_calendar_id))
 
     # Only send a single batch request to the Google Calendar API
