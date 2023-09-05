@@ -55,7 +55,7 @@ def get_data_from_gradescope(url, query, gradescope_token):
     gradescope_cookies = { "signed_token": gradescope_token }
     with requests.get(format_gradescope_url(url), cookies=gradescope_cookies) as response:
         if response.status_code != 200:
-            print("Gradescope Error!")
+            print(f"Gradescope Error: {response.status_code}!")
             print(response.content)
             exit(1)
 
@@ -71,7 +71,7 @@ def transform_or_default(data, transform, default):
 def is_gradescope_calendar(calendar) -> bool:
     if calendar["accessRole"] != "owner" or calendar.get("deleted", False):
         return False
-    return CALENDAR_DESCRIPTION in calendar["description"] if "description" in calendar else False
+    return CALENDAR_DESCRIPTION in calendar.get("description", "")
 
 def create_gradescope_calendar(calendar_service):
     calendar = {
