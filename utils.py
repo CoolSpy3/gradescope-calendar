@@ -93,7 +93,7 @@ def find_gradescope_calendar_id(calendarService):
         if not page_token:
             break
 
-    return page_token
+    return None
 
 #endregion
 
