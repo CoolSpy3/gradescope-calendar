@@ -1,6 +1,6 @@
 import os
 import xml.etree.ElementTree as ElementTree
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 import tzlocal
@@ -8,13 +8,13 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-CALENDAR_DESCRIPTION = "<USE AS GRADESCOPE CALENDAR>"
+TASKLIST_NAME = "Gradescope Assignments"
 GRADESCOPE_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 
 #region Google Calendar
 
 def login_with_google():
-    google_API_scopes = ['https://www.googleapis.com/auth/calendar.calendarlist', 'https://www.googleapis.com/auth/calendar.calendars', 'https://www.googleapis.com/auth/calendar.events']
+    google_API_scopes = ['https://www.googleapis.com/auth/tasks']
 
     # Copied from Google's API documentation
     google_credentials = None
@@ -34,13 +34,13 @@ def login_with_google():
 
     return google_credentials
 
-def enumerate_calendar_events(calendar_service, calendar_id):
+def enumerate_tasks(task_service, tasklist_id):
     page_token = None
     while True:
-        events = calendar_service.events().list(calendarId=calendar_id, pageToken=page_token).execute()
-        for event in events["items"]:
-            yield event
-        page_token = events.get("nextPageToken")
+        tasks = task_service.tasks().list(tasklist=tasklist_id, pageToken=page_token, showCompleted=True, showHidden=True).execute()
+        for task in tasks["items"]:
+            yield task
+        page_token = tasks.get("nextPageToken")
         if not page_token:
             break
 
@@ -68,28 +68,24 @@ def transform_or_default(data, transform, default):
 
 #region Calendar
 
-def is_gradescope_calendar(calendar) -> bool:
-    if calendar["accessRole"] != "owner" or calendar.get("deleted", False):
-        return False
-    return CALENDAR_DESCRIPTION in calendar["description"] if "description" in calendar else False
+def is_gradescope_tasklist(tasklist) -> bool:
+    return tasklist["title"] == TASKLIST_NAME
 
-def create_gradescope_calendar(calendar_service):
-    calendar = {
-        "summary": "Gradescope Assignments",
-        "description": CALENDAR_DESCRIPTION,
-        "timeZone": str(tzlocal.get_localzone())
+def create_gradescope_tasklist(task_service):
+    task = {
+        "title": TASKLIST_NAME
     }
-    created_calendar = calendar_service.calendars().insert(body=calendar).execute()
-    return created_calendar["id"]
+    created_tasklist = task_service.tasklists().insert(body=task).execute()
+    return created_tasklist["id"]
 
-def find_gradescope_calendar_id(calendarService):
+def find_gradescope_tasklist_id(task_service):
     page_token = None
     while True:
-        calendar_list = calendarService.calendarList().list(pageToken=page_token).execute()
-        for calendar_list_entry in calendar_list["items"]:
-            if is_gradescope_calendar(calendar_list_entry):
-                return calendar_list_entry["id"]
-        page_token = calendar_list.get("nextPageToken")
+        tasklist = task_service.tasklists().list(pageToken=page_token).execute()
+        for tasklist in tasklist["items"]:
+            if is_gradescope_tasklist(tasklist):
+                return tasklist["id"]
+        page_token = tasklist.get("nextPageToken")
         if not page_token:
             break
 
@@ -99,29 +95,22 @@ def find_gradescope_calendar_id(calendarService):
 
 #region Assignments
 
-def get_assignment_in_calendar(assignment, calendar_events):
-    for event in calendar_events:
-        if event["summary"] == assignment["name"] and datetime.fromisoformat(event["start"]["dateTime"]) == assignment["due_date"]["normal"]: # and datetime.fromisoformat(event["end"]["dateTime"]) == assignment["due_date"]["late"]
-            return event
+def get_task_in_tasklist(assignment, tasks):
+    for task in tasks:
+        if task["title"] == assignment["name"] and datetime.fromisoformat(task["due"]) == assignment["due_date"]["normal"]:
+            return task
 
     return None
 
-def create_assignment_event(calendar_service, gradescope_calendar_id, course_name, course_url, assignment):
-    event = {
-        "summary": assignment["name"],
-        "description": f'Assignment for <a href="{format_gradescope_url(course_url)}">{course_name}</a> on Gradescope',
-        "start": {
-            "dateTime": assignment["due_date"]["normal"].isoformat()
-        },
-        "end": {
-            "dateTime": assignment["due_date"]["normal"].isoformat()
-            # "dateTime": assignment["due_date"]["late"].isoformat()
-        },
-        "status": "cancelled" if assignment["completed"] else "tentative",
-        "transparency": "transparent"
+def create_assignment_task(task_service, task_create_batch, gradescope_tasklist_id, course_name, course_url, assignment):
+    task = {
+        "title": assignment["name"],
+        "notes": f'Assignment for <a href="{format_gradescope_url(course_url)}">{course_name}</a> on Gradescope',
+        "due": assignment["due_date"]["normal"].isoformat(),
+        "status": "completed" if assignment["completed"] else "needsAction"
     }
-    calendar_service.events().insert(calendarId=gradescope_calendar_id, body=event).execute()
 
+    task_create_batch.add(task_service.tasks().insert(tasklist=gradescope_tasklist_id, body=task))
 
 def get_assignment_name(assignment):
     assignment_name = assignment.find("./th")

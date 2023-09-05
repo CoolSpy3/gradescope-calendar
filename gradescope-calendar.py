@@ -2,7 +2,6 @@ import json
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
-import requests
 from googleapiclient.discovery import build as buildGoogleAPIService
 
 import utils
@@ -39,17 +38,21 @@ gradescope_assignments = {
     for course_name, course_assignments in gradescope_assignments.items()
 }
 
-with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google()) as calendar_service:
-    gradescope_calendar_id = utils.find_gradescope_calendar_id(calendar_service) or utils.create_gradescope_calendar(calendar_service)
+with buildGoogleAPIService('tasks', 'v1', credentials=utils.login_with_google()) as task_service:
+    gradescope_tasklist_id = utils.find_gradescope_tasklist_id(task_service) or utils.create_gradescope_tasklist(task_service)
 
-    calendar_events = list(utils.enumerate_calendar_events(calendar_service, gradescope_calendar_id))
+    tasks = list(utils.enumerate_tasks(task_service, gradescope_tasklist_id))
+
+    task_create_batch = task_service.new_batch_http_request()
 
     for course_name, course_url in gradescope_courses:
         for assignment in gradescope_assignments[course_name]:
-            calendar_event = utils.get_assignment_in_calendar(assignment, calendar_events)
+            task = utils.get_task_in_tasklist(assignment, tasks)
 
-            if not calendar_event:
+            if not task:
                 if assignment["due_date"]["normal"] > datetime.now(timezone.utc):
-                    utils.create_assignment_event(calendar_service, gradescope_calendar_id, course_name, course_url, assignment)
-            elif assignment["completed"] and calendar_event["status"] != "cancelled":
-                calendar_service.events().patch(calendarId=gradescope_calendar_id, eventId=calendar_event["id"], body={"status": "cancelled"}).execute()
+                    utils.create_assignment_task(task_service, task_create_batch, gradescope_tasklist_id, course_name, course_url, assignment)
+            elif assignment["completed"] and "completed" not in task:
+                task_create_batch.add(task_service.tasks().patch(tasklist=gradescope_tasklist_id, task=task["id"], body={"status": "completed"}))
+
+    task_create_batch.execute()
