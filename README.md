@@ -3,7 +3,11 @@ This project is a short script which downloads students' assignment due dates fr
 * It reads in credentials through tokens rather than storing passwords in plaintext
 * It color-codes events based on the course they are for and whether they've been turned in (Maybe the other ones do this as well, I haven't checked)
 * I wrote it (If we didn't become programmers to rewrite simple apps to solve our problems, what did we become programmers for?)
-I was also interested in working on a webapp which puts a nice GUI interface over this script and handles all the Gradescope/Google Authentication, but at the moment, I don't have servers to run it on.
+
+## Notes/Possible Improvements:
+* I tried to get the code to ~~strikethrough~~ event names once assignments were completed and/or make transparent boxes like Canvas's calendar linking system, but I couldn't make that work
+* I investigated using Google Tasks, but unfortunately, [they do not support times for due dates](https://issuetracker.google.com/issues/149537960)
+* I was also interested in working on a webapp which puts a nice GUI interface over this script and handles all the Gradescope/Google Authentication, but at the moment, I don't have servers to run it on.
 
 ## Setup
 1. Clone the repository
