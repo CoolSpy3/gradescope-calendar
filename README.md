@@ -13,7 +13,7 @@ This project is a short script which downloads students' assignment due dates fr
 ## Setup
 1. Clone the repository
 2. Install the requirements with `pip install -r requirements.txt` (Google's APIs recommend using a virtual environment for this) ([Link to their instructions](https://github.com/googleapis/google-api-python-client/tree/main?tab=readme-ov-file#installation)  (It's not that hard))
-3. Create a Google Cloud Platform project and enable the Google Calendar API ([Link to their instructions](https://developers.google.com/workspace/guides/create-project)) (The Calendar API is free)
+3. Create a Google Cloud Platform project and enable the Google Calendar API ([Link to their instructions](https://developers.google.com/workspace/guides/create-project)) (The Calendar API is free) (This doesn't have to be on the same account you plan to use calendar for)
 4. Create a Google Cloud Platform OAuth client ID ([Link to their instructions](https://developers.google.com/workspace/guides/create-credentials#desktop-app))
 5. Create a file named `google_secrets.json` and add the following text:
 ``` Json
