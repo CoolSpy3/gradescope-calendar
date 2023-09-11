@@ -107,7 +107,7 @@ with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google
     gradescope_calendar_id = utils.find_gradescope_calendar_id(calendar_service) or utils.create_gradescope_calendar(calendar_service)
 
 
-    print("Updating Assignment...")
+    print("Updating Assignments...")
     calendar_events = list(utils.enumerate_calendar_events(calendar_service, gradescope_calendar_id))
 
     # Only send a single batch request to the Google Calendar API
