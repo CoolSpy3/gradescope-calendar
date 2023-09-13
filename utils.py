@@ -4,6 +4,7 @@ from datetime import datetime
 
 import requests
 import tzlocal
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -24,14 +25,21 @@ def login_with_google():
     # If there are no (valid) credentials available, let the user log in.
     if not google_credentials or not google_credentials.valid:
         if google_credentials and google_credentials.expired and google_credentials.refresh_token:
-            google_credentials.refresh(Request())
+            try:
+                google_credentials.refresh(Request())
+            except RefreshError:
+                google_credentials = None
         else:
+            google_credentials = None
+
+        if not google_credentials:
             oauthFlow = InstalledAppFlow.from_client_secrets_file('./google_secrets.json', scopes=google_API_scopes)
             google_credentials = oauthFlow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('google_token.json', 'w') as token:
             token.write(google_credentials.to_json())
 
+    print(google_credentials.to_json())
     return google_credentials
 
 def enumerate_calendar_events(calendar_service, calendar_id):
