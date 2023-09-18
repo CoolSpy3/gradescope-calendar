@@ -39,7 +39,6 @@ def login_with_google():
         with open('google_token.json', 'w') as token:
             token.write(google_credentials.to_json())
 
-    print(google_credentials.to_json())
     return google_credentials
 
 def enumerate_calendar_events(calendar_service, calendar_id):
