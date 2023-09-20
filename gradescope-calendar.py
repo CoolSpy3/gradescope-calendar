@@ -57,7 +57,7 @@ gradescope_assignments = {
         {
             "name": utils.get_assignment_name(assignment),
             "due_date": utils.due_date_from_progress_div(assignment[2][0][2]),
-            "completed": assignment[1][1].text == "Submitted"
+            "completed": len(assignment[1]) != 2 or assignment[1][1].text == "Submitted"
         }
         for assignment in utils.get_data_from_gradescope(course_url, ".//table[@id='assignments-student-table']/tbody/tr", gradescope_token)
         if len(assignment[2][0]) > 1 # If the assignment is past due, Gradescope will not include a progress bar div
@@ -120,7 +120,7 @@ with buildGoogleAPIService('calendar', 'v3', credentials=utils.login_with_google
             if not calendar_event:
                 if assignment["due_date"]["normal"] > datetime.now(timezone.utc):
                     utils.create_assignment_event(calendar_service, event_update_batch, gradescope_calendar_id, course_name, course_url, assignment, color_settings)
-            elif assignment["completed"] and calendar_event["status"] != "cancelled":
+            elif assignment["completed"] and calendar_event["colorId"] != color_settings["Completed"]:
                 event_update_batch.add(calendar_service.events().patch(calendarId=gradescope_calendar_id, eventId=calendar_event["id"], body={"colorId": color_settings["Completed"]}))
 
     event_update_batch.execute()
