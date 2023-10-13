@@ -60,7 +60,7 @@ gradescope_assignments = {
             "completed": len(assignment[1]) != 2 or assignment[1][1].text == "Submitted"
         }
         for assignment in utils.get_data_from_gradescope(course_url, ".//table[@id='assignments-student-table']/tbody/tr", gradescope_token)
-        if len(assignment[2][0]) > 1 # If the assignment is past due, Gradescope will not include a progress bar div
+        if len(assignment[2]) >= 1 and len(assignment[2][0]) > 1 # If the assignment is past due or does not have a due date, Gradescope will not include a progress bar div
     ]
     for course_name, course_url in gradescope_courses
 }
