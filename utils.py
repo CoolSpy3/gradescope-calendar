@@ -1,5 +1,4 @@
 import os
-import xml.etree.ElementTree as ElementTree
 from datetime import datetime
 
 import requests
@@ -8,6 +7,7 @@ from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
+from lxml import etree as ElementTree
 
 CALENDAR_DESCRIPTION = "<USE AS GRADESCOPE CALENDAR>"
 GRADESCOPE_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
@@ -66,7 +66,7 @@ def get_data_from_gradescope(url, query, gradescope_token):
             print(response.content)
             exit(1)
 
-        return ElementTree.fromstring(response.content).findall(query)
+        return ElementTree.HTML(response.content.decode(), None).findall(query)
 
 def transform_or_default(data, transform, default):
     return default if data == None else transform(data)
