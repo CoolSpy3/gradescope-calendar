@@ -54,4 +54,5 @@ Note the script also contains two command line switches `--log-to-file` and `--p
 The code is divide into two files:
 * `gradescope-calendar.py` contains the main code/control flow login
 * `utils.py` contains all the functions which do the heavy lifting
+
 I think all the code is fairly organized/readable, but if you have any questions, feel free to open an issue!
