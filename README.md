@@ -39,7 +39,7 @@ This project is a short script which downloads students' assignment due dates fr
 7. Create a file named `gradescope_secrets.txt` and add the following text:
 ``` Json
 {
-    "gradescope_token": "<Your Token Here>"
+    "gradescope_token": "<YOUR TOKEN HERE>"
 }
 ```
 8. Run `gradescope-calendar.py`
@@ -51,7 +51,7 @@ This project is a short script which downloads students' assignment due dates fr
 Note the script also contains two command line switches `--log-to-file` and `--popup-on-error`. Because I am planning to run this through Windows Task Scheduler, they are just to make my life easier. They should be self-explanatory.
 
 ## Code Layout
-The code is divide into two files:
+The code is divided into two files:
 * `gradescope-calendar.py` contains the main code/control flow login
 * `utils.py` contains all the functions which do the heavy lifting
 
