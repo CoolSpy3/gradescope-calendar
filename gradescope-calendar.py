@@ -48,7 +48,7 @@ gradescope_courses = [
         utils.transform_or_default(course.find("./h3"), lambda course_name: course_name.text, "<Unknown Course>").strip(),
         course.attrib["href"]
     )
-    for course in utils.get_data_from_gradescope("", ".//div[@class='courseList']/div[@class='courseList--coursesForTerm'][2]/a[@class='courseBox']", gradescope_token)
+    for course in utils.get_data_from_gradescope("", ".//div[@class='courseList']/div[@class='courseList--coursesForTerm'][2]/a[@class='courseBox ']", gradescope_token)
 ]
 
 # For each course, get the list of assignments
